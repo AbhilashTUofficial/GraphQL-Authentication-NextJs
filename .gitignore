@@ -1,0 +1,14 @@
+# Ignore files with .log extension
+*.log
+
+# Ignore a specific directory named 'node_modules'
+node_modules/
+
+# Ignore all files in a directory named 'temp'
+temp/*
+
+# Ignore all .txt files in the root directory and its subdirectories
+*.txt
+
+# Ignore a specific file named 'config.ini'
+config.ini
