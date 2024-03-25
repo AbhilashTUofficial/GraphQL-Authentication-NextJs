@@ -2,11 +2,15 @@ import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "./schema.js";
 import db from "./_db.js";
+import {dbSchema} from "./mongodb.js"
+import { MongoClient } from "mongodb";
 
+const MONGODB =
+  "mongodb+srv://apollo:jZ2ivZa5K$db$qS@testapolloserver.vy77x15.mongodb.net/";
 const resolvers = {
   Query: {
-    games() {
-      return db.games;
+    async games() {
+      return await dbSchema.game;
     },
     authors() {
       return db.authors;
@@ -46,23 +50,23 @@ const resolvers = {
     deleteGame(_, args) {
       return db.games.filter((g) => g.id !== args.id);
     },
-    addGame(_,args){
-      let game={
-        id:Math.floor(Math.random()*100).toString(),
-        ...args.game
-      }
+    addGame(_, args) {
+      let game = {
+        id: Math.floor(Math.random() * 100).toString(),
+        ...args.game,
+      };
       db.games.push(game);
       return game;
     },
-    updateGame(_,args){
-      db.games=db.games.map((g)=>{
-        if(g.id===args.id){
-          return {...g,...args.edits}
+    updateGame(_, args) {
+      db.games = db.games.map((g) => {
+        if (g.id === args.id) {
+          return { ...g, ...args.edits };
         }
-        return g
-      })
-      return db.games.find((g)=>g.id===args.id);
-    }
+        return g;
+      });
+      return db.games.find((g) => g.id === args.id);
+    },
   },
 };
 
@@ -71,8 +75,22 @@ const server = new ApolloServer({
   resolvers,
 });
 
-const { url } = await startStandaloneServer(server, {
-  listen: { port: 4000 },
-});
-
-console.log("Listening on port 4000");
+const client = new MongoClient(MONGODB);
+async function run() {
+  try {
+    await client.connect();
+    console.log("Successfully connected to Atlas");
+  } catch (err) {
+    console.log(err.stack);
+  } finally {
+    await client.close();
+  }
+}
+run()
+  .catch(console.dir)
+  .then(async () => {
+    const { url } = await startStandaloneServer(server, {
+      listen: { port: 4000 },
+    });
+    console.log("Listening on port 4000");
+  })
